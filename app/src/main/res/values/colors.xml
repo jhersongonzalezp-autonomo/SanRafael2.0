@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="cm_fondo">#F4F7F6</color>
+    <color name="cm_primario">#00897B</color>
+    <color name="cm_info_contenedor">#EAF2F1</color>
+    <color name="login_screen_bg">#F4F7F6</color>
+    <color name="input_stroke">#CCCCCC</color>
+    <color name="hospital_green">#00897B</color>
+    <color name="hospital_light_green">#E0F2F1</color>
+    <color name="hospital_primary">#00695C</color>
+    <color name="hospital_accent">#0288D1</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_muted">#9E9E9E</color>
+    <color name="text_dark">#121212</color>
+    <color name="accent_enfermero">#0288D1</color>
+    <color name="accent_medico">#2E7D32</color>
+    <color name="accent_blue">#1E88E5</color>
+    <color name="card_stroke">#E0E0E0</color>
+    <color name="surface_variant">#F5F5F5</color>
+    <color name="badge_green_bg">#C8E6C9</color>
+    <color name="badge_green_text">#2E7D32</color>
+    <color name="badge_amber_bg">#FFECB3</color>
+    <color name="badge_amber_text">#F57F17</color>
+    <color name="badge_pending_bg">#FFE0B2</color>
+    <color name="badge_pending_text">#E65100</color>
+    <color name="badge_completed_bg">#C8E6C9</color>
+    <color name="badge_completed_text">#1B5E20</color>
+    <color name="vital_card_bg">#FAFAFA</color>
+    <color name="vital_card_stroke">#E0E0E0</color>
+    <color name="normal_bg">#E8F5E9</color>
+    <color name="normal_border">#A5D6A7</color>
+    <color name="normal_text">#2E7D32</color>
+</resources>

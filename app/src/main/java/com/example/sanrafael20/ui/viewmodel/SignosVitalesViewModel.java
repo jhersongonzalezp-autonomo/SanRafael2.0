@@ -28,7 +28,9 @@ public class SignosVitalesViewModel extends AndroidViewModel {
     }
 
     public LiveData<PacienteEntity> getPaciente(long idPaciente) { return pacientes.observarPorId(idPaciente); }
+    public LiveData<java.util.List<PacienteEntity>> getTodosPacientes() { return pacientes.observarTodos(); }
     public LiveData<Integer> getCantidadRegistros(long idEnfermero) { return repositorio.observarCantidadPorEmpleado(idEnfermero); }
+    public LiveData<java.util.List<SignosVitalesEntity>> getRegistrosPaciente(long idPaciente) { return repositorio.observarRegistrosPaciente(idPaciente); }
     public LiveData<Resultado<Long>> getGuardado() { return guardado; }
 
     public void guardar(long idPaciente, long idEnfermero, SignosVitalesEntity signos) {

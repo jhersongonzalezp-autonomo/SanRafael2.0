@@ -170,8 +170,25 @@
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
+            <!-- Desplegable para Seleccionar Paciente -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="Seleccionar paciente a atender">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/acPacienteSelectorTurno"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:text="Seleccione un paciente..." />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Card de Paciente Destacado -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPacienteDestacado"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
@@ -202,6 +219,7 @@
                             app:strokeWidth="0dp">
 
                             <TextView
+                                android:id="@+id/tvInicialesDestacado"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center"
@@ -218,6 +236,7 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/tvNombreDestacado"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 tools:text="Juan Pérez"
@@ -226,6 +245,7 @@
                                 android:textStyle="bold" />
 
                             <TextView
+                                android:id="@+id/tvDetalleDestacado"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 tools:text="HC-2024-001 · 55 años"
@@ -242,6 +262,7 @@
                             app:strokeWidth="0dp">
 
                             <TextView
+                                android:id="@+id/chipEstadoDestacado"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:paddingHorizontal="8dp"
@@ -254,6 +275,7 @@
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/tvConsultaDestacado"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"

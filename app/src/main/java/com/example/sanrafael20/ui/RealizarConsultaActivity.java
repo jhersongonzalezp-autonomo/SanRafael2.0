@@ -31,6 +31,7 @@ public class RealizarConsultaActivity extends AppCompatActivity {
     private long idMedico;
 
     private TextView tvSubtitulo, tvPaciente, tvInfo, tvIniciales;
+    private TextView tvFechaSignos, tvSignosVitalesDetalle;
     private TextInputEditText etDiagnostico, etTratamiento, etIndicaciones;
     private MaterialAutoCompleteTextView acCitaSelector;
     private ConsultaMedicoViewModel viewModel;
@@ -56,6 +57,8 @@ public class RealizarConsultaActivity extends AppCompatActivity {
         tvPaciente = findViewById(R.id.paciente);
         tvInfo = findViewById(R.id.info);
         tvIniciales = findViewById(R.id.tvInicialesConsulta);
+        tvFechaSignos = findViewById(R.id.tvFechaSignos);
+        tvSignosVitalesDetalle = findViewById(R.id.tvSignosVitalesDetalle);
         etDiagnostico = findViewById(R.id.diagnostico);
         etTratamiento = findViewById(R.id.tratamiento);
         etIndicaciones = findViewById(R.id.indicaciones);
@@ -170,6 +173,51 @@ public class RealizarConsultaActivity extends AppCompatActivity {
                         tvInfo.setText(numHist + " · DNI " + p.getIdentidad() + " · " + p.getEdad() + " años");
                     }
                 });
+            }
+        });
+
+        // Cargar los signos vitales tomados por el enfermero para este paciente
+        viewModel.getRegistrosPaciente(idPac).observe(this, registros -> {
+            if (registros != null && !registros.isEmpty()) {
+                com.example.sanrafael20.data.local.entity.SignosVitalesEntity ultimoSignos = null;
+                for (com.example.sanrafael20.data.local.entity.SignosVitalesEntity s : registros) {
+                    if (s.getPresionSistolica() != null || s.getFrecuenciaCardiaca() != null || s.getTemperatura() != null) {
+                        ultimoSignos = s;
+                        break;
+                    }
+                }
+                if (ultimoSignos == null) {
+                    ultimoSignos = registros.get(0);
+                }
+
+                if (tvFechaSignos != null) {
+                    tvFechaSignos.setText(ultimoSignos.getFechaHoraToma());
+                }
+                if (tvSignosVitalesDetalle != null) {
+                    StringBuilder sb = new StringBuilder();
+                    if (ultimoSignos.getPresionSistolica() != null && ultimoSignos.getPresionDiastolica() != null) {
+                        sb.append("PA: ").append(ultimoSignos.getPresionSistolica()).append("/").append(ultimoSignos.getPresionDiastolica()).append(" mmHg | ");
+                    }
+                    if (ultimoSignos.getFrecuenciaCardiaca() != null) {
+                        sb.append("FC: ").append(ultimoSignos.getFrecuenciaCardiaca()).append(" lpm | ");
+                    }
+                    if (ultimoSignos.getTemperatura() != null) {
+                        sb.append("Temp: ").append(ultimoSignos.getTemperatura()).append(" °C | ");
+                    }
+                    if (ultimoSignos.getSaturacionOxigeno() != null) {
+                        sb.append("SatO₂: ").append(ultimoSignos.getSaturacionOxigeno()).append("% | ");
+                    }
+                    if (ultimoSignos.getFrecuenciaRespiratoria() != null) {
+                        sb.append("FR: ").append(ultimoSignos.getFrecuenciaRespiratoria()).append(" rpm | ");
+                    }
+                    if (ultimoSignos.getObservaciones() != null && !ultimoSignos.getObservaciones().isEmpty()) {
+                        sb.append("\nNotes: ").append(ultimoSignos.getObservaciones());
+                    }
+                    tvSignosVitalesDetalle.setText(sb.length() > 0 ? sb.toString() : "Signos tomados por enfermería");
+                }
+            } else {
+                if (tvFechaSignos != null) tvFechaSignos.setText("");
+                if (tvSignosVitalesDetalle != null) tvSignosVitalesDetalle.setText("Pendiente: No se han registrado signos vitales aún.");
             }
         });
     }

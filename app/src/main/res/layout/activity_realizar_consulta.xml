@@ -149,6 +149,62 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Card de Signos Vitales Registrados por Enfermería -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSignosVitales"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="#FFF8E1"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="#FFE082"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⚡ Signos Vitales (Enfermería)"
+                            android:textColor="#E65100"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:id="@+id/tvFechaSignos"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            tools:text="2025-09-10 08:30" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvSignosVitalesDetalle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/black"
+                        android:textSize="13sp"
+                        tools:text="PA: 120/80 mmHg | FC: 75 lpm | Temp: 36.5 °C | SatO₂: 98% | FR: 18 rpm" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Pasos -->
             <LinearLayout
                 android:layout_width="match_parent"

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -11,12 +12,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sanrafael20.R;
+import com.example.sanrafael20.data.local.entity.PacienteEntity;
 import com.example.sanrafael20.data.local.entity.SignosVitalesEntity;
 import com.example.sanrafael20.ui.viewmodel.SignosVitalesViewModel;
 import com.example.sanrafael20.util.SesionManager;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SignosVitalesActivity extends AppCompatActivity {
 
@@ -24,27 +30,26 @@ public class SignosVitalesActivity extends AppCompatActivity {
 
     private TextInputLayout tilPresion, tilFc, tilTemp, tilSat, tilFr, tilPeso;
     private TextInputEditText etPresion, etFc, etTemp, etSat, etFr, etPeso, etObservaciones;
+    private MaterialAutoCompleteTextView acPacienteSelector;
     private SignosVitalesViewModel viewModel;
     private long idPaciente;
     private long idEnfermero;
+    private final List<PacienteEntity> listaPacientes = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signos_vitales);
 
-        idPaciente = getIntent().getLongExtra(EXTRA_ID_PACIENTE, -1);
+        idPaciente = getIntent().getLongExtra(EXTRA_ID_PACIENTE, 1);
         idEnfermero = new SesionManager(this).getIdEmpleado();
-        if (idPaciente < 0) {
-            finish();
-            return;
-        }
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> finish());
         }
 
+        acPacienteSelector = findViewById(R.id.acPacienteSelectorSignos);
         tilPresion = findViewById(R.id.tilPresionArterial);
         tilFc = findViewById(R.id.tilFrecuenciaCardiaca);
         tilTemp = findViewById(R.id.tilTemperatura);
@@ -61,32 +66,47 @@ public class SignosVitalesActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(SignosVitalesViewModel.class);
 
-        // Resumen del paciente (include view_paciente_resumen.xml)
-        View resumen = findViewById(R.id.pacienteResumen);
-        if (resumen != null) {
-            TextView tvIniciales = resumen.findViewById(R.id.tvIniciales);
-            TextView tvNombre = resumen.findViewById(R.id.tvNombre);
-            TextView tvDetalle = resumen.findViewById(R.id.tvDetalle);
-            viewModel.getPaciente(idPaciente).observe(this, p -> {
-                if (p != null) {
-                    if (tvIniciales != null) tvIniciales.setText(p.getIniciales());
-                    if (tvNombre != null) tvNombre.setText(p.getNombreCompleto());
-                    if (tvDetalle != null) tvDetalle.setText("Doc. " + p.getIdentidad() + " · " + p.getEdad() + " años");
+        cargarPacienteInfo(idPaciente);
+
+        // Desplegable de selección de paciente
+        viewModel.getTodosPacientes().observe(this, lista -> {
+            listaPacientes.clear();
+            if (lista != null) {
+                listaPacientes.addAll(lista);
+            }
+            List<String> nombres = new ArrayList<>();
+            for (PacienteEntity p : listaPacientes) {
+                nombres.add(p.getNombreCompleto() + " — DNI: " + p.getIdentidad());
+            }
+            if (acPacienteSelector != null) {
+                acPacienteSelector.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nombres));
+            }
+        });
+
+        if (acPacienteSelector != null) {
+            acPacienteSelector.setOnItemClickListener((parent, v, pos, id) -> {
+                if (pos >= 0 && pos < listaPacientes.size()) {
+                    idPaciente = listaPacientes.get(pos).getIdPaciente();
+                    cargarPacienteInfo(idPaciente);
                 }
             });
         }
 
         viewModel.getGuardado().observe(this, resultado -> {
             if (resultado.esExito()) {
-                Toast.makeText(this, "Signos guardados", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "✓ Signos guardados correctamente", Toast.LENGTH_SHORT).show();
                 finish();
             } else {
                 Toast.makeText(this, resultado.getError(), Toast.LENGTH_LONG).show();
-                findViewById(R.id.btnGuardarSignos).setEnabled(true);
+                View btnGuardar = findViewById(R.id.btnGuardarSignos);
+                if (btnGuardar != null) btnGuardar.setEnabled(true);
             }
         });
 
-        findViewById(R.id.btnGuardarSignos).setOnClickListener(v -> guardar());
+        View btnGuardar = findViewById(R.id.btnGuardarSignos);
+        if (btnGuardar != null) {
+            btnGuardar.setOnClickListener(v -> guardar());
+        }
 
         // Navegación Inferior
         View navTurno = findViewById(R.id.navTurno);
@@ -103,6 +123,25 @@ public class SignosVitalesActivity extends AppCompatActivity {
                 Intent i = new Intent(this, AdministrarMedicamentoActivity.class);
                 i.putExtra(AdministrarMedicamentoActivity.EXTRA_ID_PACIENTE, idPaciente);
                 startActivity(i);
+            });
+        }
+    }
+
+    private void cargarPacienteInfo(long idPac) {
+        View resumen = findViewById(R.id.pacienteResumen);
+        if (resumen != null) {
+            TextView tvIniciales = resumen.findViewById(R.id.tvIniciales);
+            TextView tvNombre = resumen.findViewById(R.id.tvNombre);
+            TextView tvDetalle = resumen.findViewById(R.id.tvDetalle);
+            viewModel.getPaciente(idPac).observe(this, p -> {
+                if (p != null) {
+                    if (tvIniciales != null) tvIniciales.setText(p.getIniciales());
+                    if (tvNombre != null) tvNombre.setText(p.getNombreCompleto());
+                    if (tvDetalle != null) tvDetalle.setText("Doc. " + p.getIdentidad() + " · " + p.getEdad() + " años");
+                    if (acPacienteSelector != null) {
+                        acPacienteSelector.setText(p.getNombreCompleto() + " — DNI: " + p.getIdentidad(), false);
+                    }
+                }
             });
         }
     }
@@ -143,14 +182,23 @@ public class SignosVitalesActivity extends AppCompatActivity {
         signos.setSaturacionOxigeno(sat);
         signos.setFrecuenciaRespiratoria(fr);
 
-        // La tabla no tiene columna de peso: se guarda dentro de las observaciones.
-        String obs = texto(etObservaciones);
-        if (peso != null) {
-            obs = "Peso: " + peso + " kg" + (obs.isEmpty() ? "" : ". " + obs);
-        }
-        signos.setObservaciones(obs.isEmpty() ? null : obs);
+        // Construir registro detallado para trazabilidad
+        StringBuilder trace = new StringBuilder();
+        trace.append("⚡ Signos Vitales — PA: ").append(sistolica).append("/").append(diastolica).append(" mmHg");
+        trace.append(" | FC: ").append(fc).append(" lpm");
+        trace.append(" | Temp: ").append(temp).append(" °C");
+        trace.append(" | SatO₂: ").append(sat).append("%");
+        if (fr != null) trace.append(" | FR: ").append(fr).append(" rpm");
+        if (peso != null) trace.append(" | Peso: ").append(peso).append(" kg");
 
-        findViewById(R.id.btnGuardarSignos).setEnabled(false);
+        String obsUser = texto(etObservaciones);
+        if (!obsUser.isEmpty()) {
+            trace.append("\nObs: ").append(obsUser);
+        }
+        signos.setObservaciones(trace.toString());
+
+        View btnGuardar = findViewById(R.id.btnGuardarSignos);
+        if (btnGuardar != null) btnGuardar.setEnabled(false);
         viewModel.guardar(idPaciente, idEnfermero, signos);
     }
 

@@ -13,10 +13,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sanrafael20.R;
+import com.example.sanrafael20.data.local.entity.PacienteEntity;
 import com.example.sanrafael20.data.local.entity.SignosVitalesEntity;
 import com.example.sanrafael20.ui.viewmodel.SignosVitalesViewModel;
 import com.example.sanrafael20.util.SesionManager;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AdministrarMedicamentoActivity extends AppCompatActivity {
 
@@ -28,7 +33,9 @@ public class AdministrarMedicamentoActivity extends AppCompatActivity {
     private TextView tvIniciales, tvPaciente, tvInfo, tvBannerInfo;
     private TextInputEditText etMedicamento, etDosis;
     private AutoCompleteTextView autoCompleteVia;
+    private MaterialAutoCompleteTextView acPacienteSelectorMedicar;
     private SignosVitalesViewModel viewModel;
+    private final List<PacienteEntity> listaPacientes = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +50,7 @@ public class AdministrarMedicamentoActivity extends AppCompatActivity {
             btnBack.setOnClickListener(v -> finish());
         }
 
+        acPacienteSelectorMedicar = findViewById(R.id.acPacienteSelectorMedicar);
         tvIniciales = findViewById(R.id.tvIniciales);
         tvPaciente = findViewById(R.id.paciente);
         tvInfo = findViewById(R.id.info);
@@ -58,19 +66,35 @@ public class AdministrarMedicamentoActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(SignosVitalesViewModel.class);
 
-        // Resumen del paciente cargado dinámicamente desde SQLite
-        viewModel.getPaciente(idPaciente).observe(this, p -> {
-            if (p != null) {
-                if (tvIniciales != null) tvIniciales.setText(p.getIniciales());
-                if (tvPaciente != null) tvPaciente.setText(p.getNombreCompleto());
-                if (tvInfo != null) tvInfo.setText("Doc. " + p.getIdentidad() + " · " + p.getEdad() + " años");
-                if (tvBannerInfo != null) tvBannerInfo.setText("Se agregará como tratamiento en el historial de " + p.getNombreCompleto() + ".");
+        cargarPacienteInfo(idPaciente);
+
+        // Desplegable de selección de paciente
+        viewModel.getTodosPacientes().observe(this, lista -> {
+            listaPacientes.clear();
+            if (lista != null) {
+                listaPacientes.addAll(lista);
+            }
+            List<String> nombres = new ArrayList<>();
+            for (PacienteEntity p : listaPacientes) {
+                nombres.add(p.getNombreCompleto() + " — DNI: " + p.getIdentidad());
+            }
+            if (acPacienteSelectorMedicar != null) {
+                acPacienteSelectorMedicar.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nombres));
             }
         });
 
+        if (acPacienteSelectorMedicar != null) {
+            acPacienteSelectorMedicar.setOnItemClickListener((parent, v, pos, id) -> {
+                if (pos >= 0 && pos < listaPacientes.size()) {
+                    idPaciente = listaPacientes.get(pos).getIdPaciente();
+                    cargarPacienteInfo(idPaciente);
+                }
+            });
+        }
+
         viewModel.getGuardado().observe(this, resultado -> {
             if (resultado.esExito()) {
-                Toast.makeText(this, "Medicamento registrado con éxito", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "✓ Medicamento registrado con éxito", Toast.LENGTH_SHORT).show();
                 finish();
             } else {
                 Toast.makeText(this, resultado.getError(), Toast.LENGTH_LONG).show();
@@ -103,6 +127,43 @@ public class AdministrarMedicamentoActivity extends AppCompatActivity {
         }
     }
 
+    private void cargarPacienteInfo(long idPac) {
+        viewModel.getPaciente(idPac).observe(this, p -> {
+            if (p != null) {
+                if (tvIniciales != null) tvIniciales.setText(p.getIniciales());
+                if (tvPaciente != null) tvPaciente.setText(p.getNombreCompleto());
+                if (tvInfo != null) tvInfo.setText("Doc. " + p.getIdentidad() + " · " + p.getEdad() + " años");
+                if (tvBannerInfo != null) tvBannerInfo.setText("Se agregará como tratamiento en el historial de " + p.getNombreCompleto() + ".");
+                if (acPacienteSelectorMedicar != null) {
+                    acPacienteSelectorMedicar.setText(p.getNombreCompleto() + " — DNI: " + p.getIdentidad(), false);
+                }
+            }
+        });
+
+        TextView tvPrescripcion = findViewById(R.id.tvPrescripcion);
+        TextView tvMedicoPrescribe = findViewById(R.id.tvMedicoPrescribe);
+
+        viewModel.getRegistrosPaciente(idPac).observe(this, registros -> {
+            String prescripcionEncontrada = null;
+            if (registros != null) {
+                for (SignosVitalesEntity s : registros) {
+                    String obs = s.getObservaciones();
+                    if (obs != null && (obs.contains("Tratamiento:") || obs.contains("Indicaciones:") || obs.contains("Diagnóstico:"))) {
+                        prescripcionEncontrada = obs;
+                        break;
+                    }
+                }
+            }
+            if (prescripcionEncontrada != null) {
+                if (tvPrescripcion != null) tvPrescripcion.setText(prescripcionEncontrada);
+                if (tvMedicoPrescribe != null) tvMedicoPrescribe.setText("Prescripción registrada por el médico tratante");
+            } else {
+                if (tvPrescripcion != null) tvPrescripcion.setText("Sin prescripción médica registrada aún");
+                if (tvMedicoPrescribe != null) tvMedicoPrescribe.setText("Consulte las indicaciones antes de administrar");
+            }
+        });
+    }
+
     private void registrar() {
         String med = etMedicamento != null && etMedicamento.getText() != null ? etMedicamento.getText().toString().trim() : "";
         String dosis = etDosis != null && etDosis.getText() != null ? etDosis.getText().toString().trim() : "";
@@ -114,7 +175,7 @@ public class AdministrarMedicamentoActivity extends AppCompatActivity {
         }
 
         SignosVitalesEntity registro = new SignosVitalesEntity();
-        registro.setObservaciones("Administración de medicamento: " + med + " (Dosis: " + (dosis.isEmpty() ? "Segunda indicación" : dosis + " mg") + ", Vía: " + via + ")");
+        registro.setObservaciones("💊 Administración de medicamento: " + med + " (Dosis: " + (dosis.isEmpty() ? "Según indicación" : dosis + " mg") + ", Vía: " + via + ")");
 
         View btnReg = findViewById(R.id.btnRegistrarAdmin);
         if (btnReg != null) btnReg.setEnabled(false);

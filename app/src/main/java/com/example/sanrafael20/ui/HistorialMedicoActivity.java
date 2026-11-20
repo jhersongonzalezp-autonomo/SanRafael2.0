@@ -235,7 +235,19 @@ public class HistorialMedicoActivity extends AppCompatActivity {
             } else if (obj instanceof SignosVitalesEntity) {
                 SignosVitalesEntity s = (SignosVitalesEntity) obj;
                 tvTitulo.setText("🩺 Registro Clínico · " + s.getFechaHoraToma());
-                tvContenido.setText(s.getObservaciones() != null ? s.getObservaciones() : "Sin observaciones");
+                StringBuilder sb = new StringBuilder();
+                if (s.getObservaciones() != null && !s.getObservaciones().isEmpty()) {
+                    sb.append(s.getObservaciones());
+                } else {
+                    if (s.getPresionSistolica() != null && s.getPresionDiastolica() != null) {
+                        sb.append("PA: ").append(s.getPresionSistolica()).append("/").append(s.getPresionDiastolica()).append(" mmHg | ");
+                    }
+                    if (s.getFrecuenciaCardiaca() != null) sb.append("FC: ").append(s.getFrecuenciaCardiaca()).append(" lpm | ");
+                    if (s.getTemperatura() != null) sb.append("Temp: ").append(s.getTemperatura()).append(" °C | ");
+                    if (s.getSaturacionOxigeno() != null) sb.append("SatO₂: ").append(s.getSaturacionOxigeno()).append("% | ");
+                    if (s.getFrecuenciaRespiratoria() != null) sb.append("FR: ").append(s.getFrecuenciaRespiratoria()).append(" rpm");
+                }
+                tvContenido.setText(sb.length() > 0 ? sb.toString() : "Registro de atención guardado");
             }
 
             inner.addView(tvTitulo);
